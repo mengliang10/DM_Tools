@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+/* ---------- Theme tokens (dark default, overridden by [data-theme="light"]) ---------- */
+:root {
+  --bg:       #0b0d10;
+  --surface:  #14181d;
+  --border:   #232830;
+  --fg:       #e7ecef;
+  --muted:    #8a96a3;
+  --accent:   #6366f1;
+  --accent-2: #22d3ee;
+  --good:     #34d399;
+  --warn:     #f59e0b;
+  --bad:      #f87171;
+}
+
+[data-theme="light"] {
+  --bg:       #f8fafc;
+  --surface:  #ffffff;
+  --border:   #e2e8f0;
+  --fg:       #0f172a;
+  --muted:    #64748b;
+  --accent:   #4f46e5;
+  --accent-2: #0891b2;
+  --good:     #059669;
+  --warn:     #d97706;
+  --bad:      #dc2626;
+}
+
+@theme {
+  --color-bg:       var(--bg);
+  --color-surface:  var(--surface);
+  --color-border:   var(--border);
+  --color-fg:       var(--fg);
+  --color-muted:    var(--muted);
+  --color-accent:   var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-good:     var(--good);
+  --color-warn:     var(--warn);
+  --color-bad:      var(--bad);
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+               "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* ---------- Reusable component classes ---------- */
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-ghost {
+    color: var(--fg);
+    background: transparent;
+  }
+  .btn-ghost:hover { background: color-mix(in oklab, var(--fg) 6%, transparent); }
+  .btn-outline {
+    border: 1px solid var(--border);
+    color: var(--fg);
+    background: transparent;
+  }
+  .btn-outline:hover { border-color: var(--accent); }
+  .btn-danger {
+    color: var(--bad);
+    border: 1px solid var(--border);
+  }
+  .btn-danger:hover { background: color-mix(in oklab, var(--bad) 10%, transparent); }
+
+  .input, .select, .textarea {
+    @apply w-full px-3 py-2 rounded-md text-sm;
+    background: color-mix(in oklab, var(--surface) 50%, var(--bg));
+    border: 1px solid var(--border);
+    color: var(--fg);
+  }
+  .input:focus, .select:focus, .textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    @apply rounded-xl p-4 shadow-sm;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium cursor-pointer;
+    color: var(--muted);
+  }
+  .nav-item:hover { color: var(--fg); background: color-mix(in oklab, var(--fg) 4%, transparent); }
+  .nav-item.active {
+    color: var(--fg);
+    background: color-mix(in oklab, var(--accent) 18%, transparent);
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+    background: color-mix(in oklab, var(--fg) 8%, transparent);
+    color: var(--fg);
+  }
+  .badge-good { background: color-mix(in oklab, var(--good) 16%, transparent); color: var(--good); }
+  .badge-warn { background: color-mix(in oklab, var(--warn) 16%, transparent); color: var(--warn); }
+  .badge-bad  { background: color-mix(in oklab, var(--bad)  16%, transparent); color: var(--bad);  }
+
+  .dot {
+    @apply inline-block w-2 h-2 rounded-full;
+  }
+  .dot-good  { background: var(--good); }
+  .dot-warn  { background: var(--warn); }
+  .dot-bad   { background: var(--bad); }
+  .dot-muted { background: var(--muted); }
+
+  .toast {
+    pointer-events: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    @apply px-4 py-3 rounded-md shadow-lg text-sm min-w-[260px];
+  }
+  .toast-success { border-color: var(--good); }
+  .toast-error   { border-color: var(--bad);  }
+
+  .table { @apply w-full text-sm; }
+  .table th { @apply text-left font-semibold text-xs uppercase tracking-wide pb-2; color: var(--muted); }
+  .table td { @apply py-2 border-t; border-color: var(--border); }
+
+  .progress {
+    @apply h-2 rounded-full overflow-hidden;
+    background: color-mix(in oklab, var(--fg) 10%, transparent);
+  }
+  .progress > div {
+    @apply h-full rounded-full;
+    background: var(--accent);
+  }
+
+  .tabs {
+    @apply inline-flex gap-1 rounded-lg p-1;
+    background: color-mix(in oklab, var(--fg) 5%, transparent);
+  }
+  .tabs > button {
+    @apply px-3 py-1.5 rounded-md text-sm font-medium;
+    color: var(--muted);
+  }
+  .tabs > button.active {
+    background: var(--surface);
+    color: var(--fg);
+  }
+}
+
+/* Markdown rendering */
+.prose-dm h1 { @apply text-2xl font-bold mt-4 mb-2; }
+.prose-dm h2 { @apply text-xl  font-bold mt-4 mb-2; }
+.prose-dm h3 { @apply text-lg  font-semibold mt-3 mb-1; }
+.prose-dm p  { @apply my-2 leading-relaxed; }
+.prose-dm ul { @apply list-disc pl-6 my-2; }
+.prose-dm ol { @apply list-decimal pl-6 my-2; }
+.prose-dm code { @apply px-1 py-0.5 rounded text-sm; background: color-mix(in oklab, var(--fg) 10%, transparent); }
+.prose-dm pre  { @apply rounded-md p-3 my-2 overflow-x-auto; background: color-mix(in oklab, var(--fg) 8%, transparent); }
+.prose-dm pre code { background: transparent; padding: 0; }
+.prose-dm a { color: var(--accent); text-decoration: underline; }
+.prose-dm table { @apply w-full text-sm my-3; }
+.prose-dm th { @apply text-left font-semibold pb-1 pr-3; color: var(--muted); }
+.prose-dm td { @apply py-1 pr-3 border-t; border-color: var(--border); }

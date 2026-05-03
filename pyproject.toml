@@ -1,0 +1,23 @@
+[project]
+name = "dm-tools"
+version = "0.1.0"
+description = "Unified digital-marketing dashboard: GEO, AIO, SEO, Martech."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+asyncio_mode = "auto"
+addopts = "-ra --strict-markers --tb=short"
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.coverage.run]
+source = ["backend"]
+omit = ["backend/tests/*", "*/__init__.py"]
