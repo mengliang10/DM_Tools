@@ -1,6 +1,21 @@
 import { api } from "../../utils/api.js";
-import { toast } from "../../components/toast.js";
+import { toast, toastError } from "../../components/toast.js";
 import { escapeHtml, gradeFromScore, pct, relativeTime } from "../../utils/format.js";
+
+function statStrip(s) {
+  if (!s) return "";
+  const items = [
+    ["Words",          s.word_count],
+    ["Images",         s.image_count],
+    ["Alt-text ratio", s.image_alt_ratio != null ? `${Math.round(s.image_alt_ratio * 100)}%` : null],
+    ["Load",           s.load_seconds != null ? `${s.load_seconds.toFixed(2)}s` : null],
+    ["Internal links", s.internal_links],
+    ["Schema types",   s.schema_types?.length ? s.schema_types.join(", ") : null],
+  ].filter(([, v]) => v != null && v !== "");
+  return items
+    .map(([k, v]) => `<span class="mr-3"><span class="text-muted">${k}:</span> ${escapeHtml(String(v))}</span>`)
+    .join("");
+}
 
 export async function mount(view) {
   const history = await api.get("/api/website/history").catch(() => []);
@@ -35,7 +50,7 @@ export async function mount(view) {
       const r = await api.post("/api/website/analyze", { url: fd.get("url"), brand: fd.get("brand") });
       renderAnalysis(view.querySelector("#result"), r);
       toast("Analyzed", "success");
-    } catch (err) { toast(err.message, "error"); }
+    } catch (err) { toastError(err); view.querySelector("#result").innerHTML = ""; }
     finally { btn.disabled = false; btn.textContent = "Analyze"; }
   });
 
@@ -43,7 +58,7 @@ export async function mount(view) {
     try {
       const r = await api.get(`/api/website/${b.getAttribute("data-load")}`);
       renderAnalysis(view.querySelector("#result"), { url: r.url, ...r.findings });
-    } catch (e) { toast(e.message, "error"); }
+    } catch (e) { toastError(e); }
   }));
 }
 
@@ -55,7 +70,7 @@ function renderAnalysis(target, r) {
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0">
           <h3 class="font-semibold truncate">${escapeHtml(r.url)}</h3>
-          <p class="text-xs text-muted">${escapeHtml(JSON.stringify(r.stats))}</p>
+          <p class="text-xs mt-1">${statStrip(r.stats)}</p>
         </div>
         <div class="text-center">
           <div class="text-4xl font-bold text-${grade.colour}">${grade.letter}</div>

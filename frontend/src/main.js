@@ -43,7 +43,12 @@ initTheme();
 buildSidebar();
 wireChrome();
 window.addEventListener("hashchange", routeFromHash);
-window.addEventListener("dm:profile-changed", refreshActiveProfileLabel);
+window.addEventListener("dm:profile-changed", () => {
+  // Profile changed → list views (prompts, competitors, history, runs) need
+  // re-fetching. Easiest correct thing: re-mount the active route.
+  refreshActiveProfileLabel();
+  routeFromHash();
+});
 routeFromHash();
 checkApiHealth();
 refreshActiveProfileLabel();

@@ -1,5 +1,5 @@
 import { api } from "../../utils/api.js";
-import { toast } from "../../components/toast.js";
+import { toast, toastError } from "../../components/toast.js";
 import { escapeHtml } from "../../utils/format.js";
 
 export async function mount(view) {
@@ -45,7 +45,7 @@ async function render(view) {
       await api.post("/api/competitors", Object.fromEntries(new FormData(e.currentTarget)));
       toast("Competitor added", "success");
       render(view);
-    } catch (err) { toast(err.message, "error"); }
+    } catch (err) { toastError(err); }
   });
   view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
     if (!confirm("Delete?")) return;

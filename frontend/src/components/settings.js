@@ -1,7 +1,7 @@
 // Settings modal: API key CRUD + active profile picker.
 import { api } from "../utils/api.js";
 import { openModal } from "./modal.js";
-import { toast } from "./toast.js";
+import { toast, toastError } from "./toast.js";
 import { escapeHtml } from "../utils/format.js";
 
 export async function openSettingsModal() {
@@ -18,15 +18,12 @@ export async function openSettingsModal() {
       api.get("/api/profiles/active/current").then((r) => r.active_profile_id),
     ]);
   } catch (e) {
-    toast(`Could not load settings: ${e.message}`, "error");
+    toastError(e);
     return;
   }
 
   const providerOptions = Object.keys(providers)
     .map((p) => `<option value="${p}">${p}</option>`)
-    .join("");
-  const modelDatalist = Object.entries(providers)
-    .map(([p, models]) => models.map((m) => `<option value="${m}">${p}</option>`).join(""))
     .join("");
 
   const profileOptions = `
@@ -81,13 +78,16 @@ export async function openSettingsModal() {
         <details class="mt-3">
           <summary class="cursor-pointer text-sm">+ Add a key</summary>
           <form id="add-key-form" class="grid grid-cols-2 gap-2 mt-3">
-            <select name="provider" class="select" required>
+            <select name="provider" id="key-provider" class="select" required>
               <option value="">Provider…</option>${providerOptions}
             </select>
             <input name="label" class="input" placeholder="Label (optional)" />
-            <input name="api_key" type="password" class="input col-span-2" placeholder="API key (stored encrypted)" required autocomplete="new-password" />
-            <input name="model" class="input col-span-2" placeholder="Model (or pick from list)" list="models-list" required />
-            <datalist id="models-list">${modelDatalist}</datalist>
+            <input name="api_key" id="key-api-key" type="password" class="input col-span-2"
+                   placeholder="Pick a provider first…" required autocomplete="new-password" disabled />
+            <select name="model" id="key-model" class="select col-span-2" required disabled>
+              <option value="">Pick a provider first…</option>
+            </select>
+            <p id="key-hint" class="text-xs text-muted col-span-2 hidden"></p>
             <button type="submit" class="btn btn-primary col-span-2">Save key</button>
           </form>
         </details>
@@ -116,7 +116,7 @@ export async function openSettingsModal() {
       window.dispatchEvent(new CustomEvent("dm:profile-changed"));
       close();
     } catch (e) {
-      toast(e.message, "error");
+      toastError(e);
     }
   });
 
@@ -132,7 +132,7 @@ export async function openSettingsModal() {
       window.dispatchEvent(new CustomEvent("dm:profile-changed"));
       close();
     } catch (e) {
-      toast(e.message, "error");
+      toastError(e);
     }
   });
 
@@ -146,8 +146,40 @@ export async function openSettingsModal() {
         toast("Key deleted", "success");
         close();
         openSettingsModal();
-      } catch (e) { toast(e.message, "error"); }
+      } catch (e) { toastError(e); }
     });
+  });
+
+  // ----- Provider → filter the model dropdown + relabel API-key field -----
+  const providerSel = overlay.querySelector("#key-provider");
+  const modelSel    = overlay.querySelector("#key-model");
+  const apiKeyInput = overlay.querySelector("#key-api-key");
+  const hint        = overlay.querySelector("#key-hint");
+
+  providerSel.addEventListener("change", () => {
+    const p = providerSel.value;
+    const models = providers[p] || [];
+
+    // Rebuild model options to match the picked provider only
+    modelSel.innerHTML = models.length
+      ? models.map((m) => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join("")
+      : `<option value="">No models listed for this provider</option>`;
+    modelSel.disabled = models.length === 0;
+
+    // Ollama doesn't use an API key — the "key" field is its base URL
+    apiKeyInput.disabled = !p;
+    if (p === "ollama") {
+      apiKeyInput.type = "text";
+      apiKeyInput.placeholder = "Base URL (e.g. http://localhost:11434)";
+      apiKeyInput.value = apiKeyInput.value || "http://localhost:11434";
+      hint.textContent = "Ollama runs locally — paste its base URL instead of an API key.";
+      hint.classList.remove("hidden");
+    } else {
+      apiKeyInput.type = "password";
+      apiKeyInput.placeholder = "API key (stored encrypted)";
+      hint.classList.add("hidden");
+      hint.textContent = "";
+    }
   });
 
   overlay.querySelector("#add-key-form").addEventListener("submit", async (e) => {
@@ -159,13 +191,16 @@ export async function openSettingsModal() {
       api_key: f.api_key.value,
       model: f.model.value,
     };
+    if (!payload.provider) return toast("Pick a provider", "error");
+    if (!payload.model)    return toast("Pick a model",    "error");
+    if (!payload.api_key)  return toast(payload.provider === "ollama" ? "Enter the Ollama base URL" : "Enter an API key", "error");
     try {
       await api.post("/api/keys", payload);
       toast("Key saved (encrypted)", "success");
       close();
       openSettingsModal();
     } catch (e) {
-      toast(e.message, "error");
+      toastError(e);
     }
   });
 }

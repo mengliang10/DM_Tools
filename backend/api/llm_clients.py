@@ -55,7 +55,32 @@ _retry = retry(
 
 
 def _wrap_error(provider: str, exc: Exception) -> LLMAPIError:
-    return LLMAPIError(f"{provider}: {exc}")
+    """Translate raw provider errors into actionable messages.
+
+    httpx raises `HTTPStatusError` whose `.response.status_code` carries the
+    real signal — 401 (bad key), 403 (no access), 404 (wrong model), 429
+    (rate limit), 5xx (provider outage). Pulled out so callers downstream
+    (visibility runs, content gen, FAQ gen) all benefit consistently.
+    """
+    label = provider.split("//")[-1].split("/")[0] or provider
+    if isinstance(exc, httpx.TimeoutException):
+        return LLMAPIError(f"{label} timed out — try again or raise LLM_TIMEOUT in .env.")
+    if isinstance(exc, httpx.ConnectError):
+        return LLMAPIError(f"Cannot connect to {label} — check your network or the provider's status page.")
+    if isinstance(exc, httpx.HTTPStatusError):
+        code = exc.response.status_code
+        if code == 401:
+            return LLMAPIError(f"{label}: API key rejected (HTTP 401). Re-add the key from Settings.")
+        if code == 403:
+            return LLMAPIError(f"{label}: forbidden (HTTP 403). Your key lacks access to this model.")
+        if code == 404:
+            return LLMAPIError(f"{label}: model not found (HTTP 404). The model name may be wrong or deprecated.")
+        if code == 429:
+            return LLMAPIError(f"{label}: rate-limited (HTTP 429). Slow down or upgrade your plan.")
+        if 500 <= code < 600:
+            return LLMAPIError(f"{label}: provider error (HTTP {code}). Their service is having issues.")
+        return LLMAPIError(f"{label}: HTTP {code} — {exc.response.text[:200]}")
+    return LLMAPIError(f"{label}: {exc}")
 
 
 # ---------------------------------------------------------------------------

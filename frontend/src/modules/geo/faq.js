@@ -1,5 +1,5 @@
 import { api } from "../../utils/api.js";
-import { toast } from "../../components/toast.js";
+import { toast, toastError } from "../../components/toast.js";
 import { escapeHtml, renderMarkdown, relativeTime } from "../../utils/format.js";
 
 export async function mount(view) {
@@ -76,7 +76,7 @@ export async function mount(view) {
       const out = await api.post("/api/faq/generate", payload);
       renderFaq(view.querySelector("#output"), out.content);
       toast("FAQ ready", "success");
-    } catch (err) { toast(err.message, "error"); }
+    } catch (err) { toastError(err); view.querySelector("#output").innerHTML = `<div class="text-muted text-sm">FAQ generation failed.</div>`; }
     finally { btn.disabled = false; btn.textContent = "Generate FAQ"; }
   });
 
@@ -84,7 +84,7 @@ export async function mount(view) {
     try {
       const r = await api.get(`/api/faq/${b.getAttribute("data-load")}`);
       renderFaq(view.querySelector("#output"), r.content);
-    } catch (e) { toast(e.message, "error"); }
+    } catch (e) { toastError(e); }
   }));
 }
 

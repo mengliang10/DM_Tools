@@ -49,3 +49,6 @@ data/*.db-shm
 *.swo
 .DS_Store
 Thumbs.db
+
+# --- Local-only docs (never push) ---
+DEVELOPMENT_JOURNAL.md

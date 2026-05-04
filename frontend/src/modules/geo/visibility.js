@@ -1,6 +1,22 @@
 import { api } from "../../utils/api.js";
-import { toast } from "../../components/toast.js";
+import { toast, toastError } from "../../components/toast.js";
 import { escapeHtml, renderMarkdown, relativeTime } from "../../utils/format.js";
+
+// Past-run rows from /api/visibility/runs/{id} have `competitors_json` (already
+// parsed to an array). Fresh-run rows have `competitors_found`. Normalise here
+// so the renderer doesn't care about the source.
+function normaliseResults(rows) {
+  return (rows || []).map((r) => ({
+    ...r,
+    competitors_found: r.competitors_found ?? r.competitors_json ?? [],
+    response: r.response ?? "",
+  }));
+}
+
+// Properly escape regex meta-chars in a brand name before highlight.
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 export async function mount(view) {
   const [keys, prompts, runs] = await Promise.all([
@@ -100,10 +116,12 @@ export async function mount(view) {
     view.querySelector("#results").innerHTML = `<div class="card text-muted text-sm">Querying ${provider_ids.length} model(s) in parallel…</div>`;
     try {
       const out = await api.post("/api/visibility/run", payload);
+      out.results = normaliseResults(out.results);
       renderResults(view.querySelector("#results"), out);
       toast("Run complete", "success");
     } catch (err) {
-      toast(err.message, "error");
+      toastError(err);
+      view.querySelector("#results").innerHTML = "";
     } finally {
       btn.disabled = false; btn.textContent = "Run visibility check";
     }
@@ -114,9 +132,13 @@ export async function mount(view) {
       const id = b.getAttribute("data-run-id");
       try {
         const out = await api.get(`/api/visibility/runs/${id}`);
-        renderResults(view.querySelector("#results"),
-          { run_id: out.run.id, prompt: out.run.prompt_text, brand: out.run.brand, results: out.results });
-      } catch (err) { toast(err.message, "error"); }
+        renderResults(view.querySelector("#results"), {
+          run_id:  out.run.id,
+          prompt:  out.run.prompt_text,
+          brand:   out.run.brand,
+          results: normaliseResults(out.results),
+        });
+      } catch (err) { toastError(err); }
     });
   });
 }
@@ -161,6 +183,9 @@ function renderResults(target, run) {
 
 function highlightBrand(html, brand) {
   if (!brand) return html;
-  const re = new RegExp(`(${brand.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")})`, "gi");
-  return html.replace(re, '<mark style="background:color-mix(in oklab, var(--accent) 30%, transparent); color:inherit; padding:0 2px; border-radius:3px">$1</mark>');
+  const re = new RegExp(`(${escapeRegex(brand)})`, "gi");
+  return html.replace(
+    re,
+    '<mark style="background:color-mix(in oklab, var(--accent) 30%, transparent); color:inherit; padding:0 2px; border-radius:3px">$1</mark>'
+  );
 }

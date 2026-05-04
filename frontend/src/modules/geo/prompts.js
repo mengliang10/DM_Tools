@@ -1,5 +1,5 @@
 import { api } from "../../utils/api.js";
-import { toast } from "../../components/toast.js";
+import { toast, toastError } from "../../components/toast.js";
 import { escapeHtml } from "../../utils/format.js";
 
 export async function mount(view) {
@@ -44,13 +44,13 @@ async function render(view) {
       await api.post("/api/prompts", Object.fromEntries(fd));
       toast("Prompt added", "success");
       render(view);
-    } catch (err) { toast(err.message, "error"); }
+    } catch (err) { toastError(err); }
   });
   view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
     if (!confirm("Delete this prompt?")) return;
     try {
       await api.del(`/api/prompts/${b.getAttribute("data-del")}`);
       render(view);
-    } catch (e) { toast(e.message, "error"); }
+    } catch (e) { toastError(e); }
   }));
 }

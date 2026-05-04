@@ -1,5 +1,5 @@
 import { api } from "../../utils/api.js";
-import { toast } from "../../components/toast.js";
+import { toast, toastError } from "../../components/toast.js";
 import { escapeHtml, relativeTime } from "../../utils/format.js";
 
 export async function mount(view) {
@@ -30,7 +30,7 @@ export async function mount(view) {
       const r = await api.post("/api/martech/scan", { url: fd.get("url") });
       renderResult(view.querySelector("#result"), r);
       toast(`Found ${r.total} vendor(s)`, "success");
-    } catch (err) { toast(err.message, "error"); }
+    } catch (err) { toastError(err); view.querySelector("#result").innerHTML = ""; }
     finally { btn.disabled = false; btn.textContent = "Scan"; }
   });
 }

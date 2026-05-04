@@ -14,10 +14,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from fastapi import Request
+
 from .api.llm_clients import aclose_http
 from .api.routes import analyzers, geo, history, keys, meta, profiles
 from .config import settings
 from .database import init_db
+from .services.security import EncryptionError
 
 logging.basicConfig(
     level=logging.INFO if not settings.DEBUG else logging.DEBUG,
@@ -47,6 +50,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Turn EncryptionError (raised when ENCRYPTION_KEY is missing/invalid) into
+# a 400 with a clear message instead of an opaque 500.
+@app.exception_handler(EncryptionError)
+async def _encryption_error_handler(_request: Request, exc: EncryptionError):
+    return JSONResponse(
+        status_code=400,
+        content={
+            "detail": str(exc),
+            "fix": (
+                "Create a .env file in the project root with ENCRYPTION_KEY=<key>, "
+                "then restart the backend. Generate a key with: "
+                "python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
+            ),
+        },
+    )
 
 # ---- Routers ----
 app.include_router(meta.router,      prefix="/api",                tags=["meta"])
