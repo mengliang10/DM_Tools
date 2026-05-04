@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException
 
 from ...database import get_db, row_to_dict, rows_to_list
 from ...services import martech, pagespeed
+from ...services.deep_scanner import run_deep_scan
 from ..helpers import get_active_profile_id
 from ..schemas import MartechScanIn, WebsiteAnalyzeIn
 
@@ -183,9 +184,13 @@ async def analyze_website(body: WebsiteAnalyzeIn) -> dict:
 
     try:
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-            resp = await client.get(url, headers={"User-Agent": "DM_Tools/0.1"})
+            resp = await client.get(url, headers={"User-Agent": "DM_Tools/0.2"})
             html = resp.text
             load_time = resp.elapsed.total_seconds()
+            # Deep DOM + security-headers + robots.txt + JSON-LD scan.
+            # Generates raw structured data plus narrative insights
+            # (e.g. "CRITICAL: X-Robots-Tag:noai detected").
+            deep_scan = await run_deep_scan(url, html, dict(resp.headers), client)
     except Exception as e:
         raise HTTPException(502, f"Failed to fetch URL: {e}") from e
 
@@ -193,6 +198,8 @@ async def analyze_website(body: WebsiteAnalyzeIn) -> dict:
     findings = _score(soup, html, body.brand, load_time)
     findings["martech"] = martech.detect(html)
     findings["lighthouse"] = await pagespeed.fetch_lighthouse(url)
+    findings["deep_scan"] = deep_scan  # {"raw": {...}, "insights": [...]}
+
 
     conn = get_db()
     try:

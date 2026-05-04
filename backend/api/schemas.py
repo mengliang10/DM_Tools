@@ -75,3 +75,49 @@ class WebsiteAnalyzeIn(BaseModel):
 
 class MartechScanIn(BaseModel):
     url: HttpUrl
+
+
+class DomainIn(BaseModel):
+    name: str
+    domain: str
+    industry: str = ""
+    description: str = ""
+
+
+class SiteProfileIn(BaseModel):
+    domain_id: int
+    page_url: str
+    page_type: str = "homepage"
+    notes: str = ""
+
+
+class AutofillIn(BaseModel):
+    module: str
+    key_id: int
+    brand: str = ""
+    industry: str = ""
+    website: str = ""
+    language: str = "en"
+    count_top: int = 5
+    count_mid: int = 5
+    count_bot: int = 5
+
+
+class AnalysisIn(BaseModel):
+    key_id: int
+    persona: str = "expert"
+    language: str = "en"
+    market: str = "global"
+    read_experience: bool = False
+
+
+class DebateIn(BaseModel):
+    key_ids: list[int]
+    persona: str = "expert"
+    language: str = "en"
+    market: str = "global"
+    read_experience: bool = False
+
+
+class ProCiteGradeIn(BaseModel):
+    url: HttpUrl

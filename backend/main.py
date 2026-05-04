@@ -17,7 +17,17 @@ from fastapi.staticfiles import StaticFiles
 from fastapi import Request
 
 from .api.llm_clients import aclose_http
-from .api.routes import analyzers, geo, history, keys, meta, profiles
+from .api.routes import (
+    analysis,
+    analyzers,
+    domains,
+    geo,
+    history,
+    keys,
+    meta,
+    pro,
+    profiles,
+)
 from .config import settings
 from .database import init_db
 from .services.security import EncryptionError
@@ -74,6 +84,9 @@ app.include_router(keys.router,      prefix="/api/keys",           tags=["keys"]
 app.include_router(profiles.router,  prefix="/api",                tags=["profiles"])
 app.include_router(geo.router,       prefix="/api",                tags=["geo"])
 app.include_router(analyzers.router, prefix="/api",                tags=["analyzers"])
+app.include_router(analysis.router,  prefix="/api",                tags=["analysis"])
+app.include_router(pro.router,       prefix="/api/pro",            tags=["pro"])
+app.include_router(domains.router,   prefix="/api",                tags=["domains"])
 app.include_router(history.router,   prefix="/api/history",        tags=["history"])
 
 

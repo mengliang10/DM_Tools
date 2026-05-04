@@ -11,6 +11,10 @@ import { mount as mountContent } from "./modules/geo/content.js";
 import { mount as mountFaq } from "./modules/geo/faq.js";
 import { mount as mountPrompts } from "./modules/geo/prompts.js";
 import { mount as mountCompetitors } from "./modules/geo/competitors.js";
+import { mount as mountAnalysis } from "./modules/geo/analysis.js";
+import { mount as mountProTools } from "./modules/geo/pro_tools.js";
+import { mount as mountProfiles } from "./modules/geo/profiles.js";
+import { mount as mountDomains } from "./modules/geo/domains.js";
 import { mount as mountWebsite } from "./modules/analyzers/website.js";
 import { mount as mountMartech } from "./modules/analyzers/martech.js";
 import { mount as mountAio } from "./modules/aio/index.js";
@@ -22,17 +26,21 @@ import { mount as mountHistory } from "./modules/history.js";
 // ---------------------------------------------------------------------------
 
 const ROUTES = [
-  { id: "dashboard",   group: "Overview", icon: "📊", title: "Dashboard",        subtitle: "At-a-glance stats and recent activity.",            mount: mountDashboard },
-  { id: "visibility",  group: "GEO",      icon: "👁",  title: "Visibility Check", subtitle: "Probe multiple LLMs to see who mentions your brand.", mount: mountVisibility },
-  { id: "content",     group: "GEO",      icon: "✍️", title: "Content Generator", subtitle: "Long-form GEO-optimised content from any model.",     mount: mountContent },
-  { id: "faq",         group: "GEO",      icon: "❓", title: "FAQ Generator",     subtitle: "Q&A pairs with FAQPage JSON-LD schema.",              mount: mountFaq },
-  { id: "prompts",     group: "GEO",      icon: "💬", title: "Prompts Library",   subtitle: "Manage saved visibility prompts per profile.",        mount: mountPrompts },
-  { id: "competitors", group: "GEO",      icon: "🏷",  title: "Competitors",      subtitle: "Track brands to detect in LLM responses.",            mount: mountCompetitors },
-  { id: "website",     group: "Analyse",  icon: "🌐", title: "Website Analyzer", subtitle: "15-point GEO/SEO audit with Lighthouse + martech.",  mount: mountWebsite },
-  { id: "martech",     group: "Analyse",  icon: "📡", title: "Martech Scanner",  subtitle: "Detect 100+ marketing tags on any public URL.",       mount: mountMartech },
-  { id: "aio",         group: "Analyse",  icon: "🔍", title: "AIO Optimizer",    subtitle: "Google AI Overview readiness — E-E-A-T, readability.", mount: mountAio },
-  { id: "seo",         group: "Analyse",  icon: "📈", title: "SEO Toolkit",      subtitle: "Traditional on-page SEO: SERP, keywords, schema.",    mount: mountSeo },
-  { id: "history",     group: "Logs",     icon: "🕘", title: "History",          subtitle: "Unified timeline across every module.",               mount: mountHistory },
+  { id: "dashboard",   group: "Overview", icon: "📊", title: "Dashboard",          subtitle: "At-a-glance stats and recent activity.",                       mount: mountDashboard },
+  { id: "visibility",  group: "GEO",      icon: "👁",  title: "Visibility Check",   subtitle: "Probe multiple LLMs to see who mentions your brand.",          mount: mountVisibility },
+  { id: "analysis",    group: "GEO",      icon: "🧠", title: "Strategic Analysis", subtitle: "Persona-driven (CEO/CMO/CTO/SEO Expert) + multi-LLM debate.",  mount: mountAnalysis },
+  { id: "content",     group: "GEO",      icon: "✍️", title: "Content Generator",  subtitle: "Long-form GEO-optimised content from any model.",             mount: mountContent },
+  { id: "faq",         group: "GEO",      icon: "❓", title: "FAQ Generator",      subtitle: "Q&A pairs with FAQPage JSON-LD schema.",                       mount: mountFaq },
+  { id: "prompts",     group: "GEO",      icon: "💬", title: "Prompts Library",    subtitle: "Manage saved prompts; one-click ✨ autofill from your brand.", mount: mountPrompts },
+  { id: "competitors", group: "GEO",      icon: "🏷",  title: "Competitors",       subtitle: "Track brands to detect in LLM responses.",                     mount: mountCompetitors },
+  { id: "pro-tools",   group: "GEO",      icon: "⚡", title: "Pro Tools",          subtitle: "Citation grader + advanced JSON-LD schema generator.",         mount: mountProTools },
+  { id: "website",     group: "Analyse",  icon: "🌐", title: "Website Analyzer",   subtitle: "15-pt scorecard + deep DOM/security scan + Lighthouse + martech.", mount: mountWebsite },
+  { id: "martech",     group: "Analyse",  icon: "📡", title: "Martech Scanner",    subtitle: "Detect 100+ marketing tags on any public URL.",                mount: mountMartech },
+  { id: "aio",         group: "Analyse",  icon: "🔍", title: "AIO Optimizer",      subtitle: "Google AI Overview readiness — E-E-A-T, readability.",         mount: mountAio },
+  { id: "seo",         group: "Analyse",  icon: "📈", title: "SEO Toolkit",        subtitle: "Traditional on-page SEO: SERP, keywords, schema.",             mount: mountSeo },
+  { id: "profiles",    group: "Manage",   icon: "👥", title: "Profiles",           subtitle: "Per-brand isolation — full CRUD with linked API keys.",        mount: mountProfiles },
+  { id: "domains",     group: "Manage",   icon: "🔗", title: "Domains & Pages",    subtitle: "Multiple domains + per-page tracking under each profile.",     mount: mountDomains },
+  { id: "history",     group: "Logs",     icon: "🕘", title: "History",            subtitle: "Unified timeline across every module.",                        mount: mountHistory },
 ];
 
 // ---------------------------------------------------------------------------

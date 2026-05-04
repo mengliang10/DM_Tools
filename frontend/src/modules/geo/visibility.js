@@ -174,7 +174,7 @@ function renderResults(target, run) {
           </div>
         </div>
         ${r.error ? `<div class="text-bad text-sm">${escapeHtml(r.error)}</div>` :
-        `<div class="prose-dm text-sm">${highlightBrand(renderMarkdown(r.response), run.brand)}</div>
+        `<div class="prose-dm text-sm">${highlightCompetitors(highlightBrand(renderMarkdown(r.response), run.brand), r.competitors_found)}</div>
          ${r.competitors_found?.length ? `<div class="mt-2 text-xs text-muted">Other brands: ${r.competitors_found.map(c => `<span class="badge">${escapeHtml(c)}</span>`).join(" ")}</div>` : ""}`}
       </div>
     `).join("")}
@@ -188,4 +188,22 @@ function highlightBrand(html, brand) {
     re,
     '<mark style="background:color-mix(in oklab, var(--accent) 30%, transparent); color:inherit; padding:0 2px; border-radius:3px">$1</mark>'
   );
+}
+
+// Wraps each detected competitor in a coloured highlight, distinct from the
+// brand highlight. Uses a small palette cycled per competitor.
+const COMPETITOR_COLOURS = ["bad", "warn", "good", "accent-2"];
+function highlightCompetitors(html, competitors) {
+  if (!competitors || competitors.length === 0) return html;
+  let out = html;
+  competitors.forEach((c, i) => {
+    if (!c) return;
+    const colour = COMPETITOR_COLOURS[i % COMPETITOR_COLOURS.length];
+    const re = new RegExp(`\\b(${escapeRegex(c)})\\b`, "gi");
+    out = out.replace(
+      re,
+      `<mark style="background:color-mix(in oklab, var(--${colour}) 22%, transparent); color:inherit; padding:0 2px; border-radius:3px" title="Competitor">$1</mark>`
+    );
+  });
+  return out;
 }

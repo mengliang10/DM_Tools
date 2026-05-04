@@ -169,12 +169,50 @@ CREATE TABLE IF NOT EXISTS martech_scans (
     created_at  TEXT DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS geo_analyses (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id   INTEGER,
+    brand        TEXT,
+    industry     TEXT,
+    persona      TEXT DEFAULT 'expert',
+    market       TEXT DEFAULT 'global',
+    provider     TEXT,
+    model        TEXT,
+    content      TEXT,
+    debate_json  TEXT DEFAULT '{}',
+    is_debate    INTEGER DEFAULT 0,
+    created_at   TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS domains (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id  INTEGER,
+    name        TEXT NOT NULL,
+    domain      TEXT NOT NULL,
+    industry    TEXT,
+    description TEXT,
+    created_at  TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS site_profiles (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id  INTEGER,
+    domain_id   INTEGER REFERENCES domains(id) ON DELETE CASCADE,
+    page_url    TEXT NOT NULL,
+    page_type   TEXT DEFAULT 'homepage',
+    notes       TEXT,
+    created_at  TEXT DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_visibility_runs_profile  ON visibility_runs(profile_id, run_at DESC);
 CREATE INDEX IF NOT EXISTS idx_visibility_results_run   ON visibility_results(run_id);
 CREATE INDEX IF NOT EXISTS idx_content_profile          ON content_generations(profile_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_faq_profile              ON faq_generations(profile_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_website_profile          ON website_analyses(profile_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_martech_profile          ON martech_scans(profile_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_geo_analyses_profile     ON geo_analyses(profile_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_domains_profile          ON domains(profile_id);
+CREATE INDEX IF NOT EXISTS idx_site_profiles_domain     ON site_profiles(domain_id);
 """
 
 DEFAULT_PROMPTS = [

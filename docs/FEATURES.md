@@ -33,6 +33,18 @@
 | Analyse · SEO | Technical Audit | seo-tool | ✅ |
 | Analyse · SEO | Schema.org Validator (13 types) | seo-tool | ✅ |
 | Logs · History | Unified timeline across modules | new | ✅ |
+| **Added in v0.2** | | | |
+| GEO · Strategic Analysis | Persona-driven (CEO / CMO / CTO / SEO Expert) single-LLM report | geo | ✅ |
+| GEO · Strategic Analysis | Multi-LLM 3-round debate orchestrator | geo | ✅ |
+| GEO · Prompts | One-click ✨ Autofill — LLM-suggested prompts from active brand | geo | ✅ |
+| GEO · Pro Tools | Citation-probability grader for any URL | geo | ✅ |
+| GEO · Pro Tools | Advanced JSON-LD `Organization` schema generator | geo | ✅ |
+| Analyse · Website | **Deep DOM & Security scan** (security headers, robots.txt with GPTBot check, link/script/image analysis, JSON-LD, ARIA, DOM stats, narrative insights) | geo | ✅ |
+| Manage · Profiles | Full CRUD with linked API keys (was picker-only in v0.1) | geo | ✅ |
+| Manage · Domains & Pages | Multi-domain + per-page tracking under each profile | geo | ✅ |
+| Meta · Knowledge Base | 39 reference articles served at `/api/kb/{filename}` | geo | ✅ |
+| Meta · Dashboard Stats | Server-side aggregator at `/api/dashboard/stats` | geo | ✅ |
+| Visibility | Per-competitor coloured highlighting alongside brand | geo | ✅ |
 
 ## Deferred (planned)
 
@@ -40,7 +52,7 @@
 |---|---|---|
 | AEO · Bot Tracker | Passive AI-crawler analytics via JS snippet | Different paradigm — needs separate user-instrumentation flow |
 | AEO · Content Submission | Content distribution to AI indexes | Tied to bot tracker |
-| GEO · Raindrop Sync | Push competitors to Raindrop bookmarks | Optional add-on, original tokens not yet ported |
+| GEO · Raindrop Sync | Push competitors to Raindrop bookmarks | Out of scope per user instruction |
 | Auth | JWT login | Single-user localhost is the v1 brief |
-| Streamlit | Executive dashboard | Optional companion app |
+| Streamlit | Executive dashboard | Out of scope per user instruction |
 | Static Pages build | GitHub Pages mode (analyzers only) | Roadmap item |

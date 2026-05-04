@@ -98,6 +98,7 @@ async def delete_profile(profile_id: int) -> dict[str, bool]:
             "prompts", "competitors", "visibility_runs",
             "content_generations", "faq_generations",
             "website_analyses", "martech_scans",
+            "geo_analyses", "site_profiles", "domains",
         ):
             conn.execute(f"DELETE FROM {table} WHERE profile_id=?", (profile_id,))
         conn.execute("DELETE FROM profiles WHERE id=?", (profile_id,))

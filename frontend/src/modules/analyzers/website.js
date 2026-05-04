@@ -118,11 +118,102 @@ function renderAnalysis(target, r) {
       </div>` : ""}
 
     ${r.martech?.length ? `
-      <div class="card">
+      <div class="card mb-4">
         <h4 class="font-semibold mb-2">Martech detected (${r.martech.length})</h4>
         <div class="flex flex-wrap gap-1">
           ${r.martech.map(m => `<span class="badge" title="${escapeHtml(m.category)}">${escapeHtml(m.name)}</span>`).join("")}
         </div>
       </div>` : ""}
+
+    ${r.deep_scan ? renderDeepScan(r.deep_scan) : ""}
+  `;
+}
+
+// Renders the deep-DOM-scan insights section: security headers, robots.txt,
+// link/script/image analysis, JSON-LD schemas, ARIA, DOM statistics, plus
+// the auto-generated narrative findings ("CRITICAL: noai detected", etc.).
+function renderDeepScan(deep) {
+  const insights = deep.insights || [];
+  const raw = deep.raw || {};
+  const sec = raw.security_and_bot_headers || {};
+  const dom = raw.dom_statistics || {};
+  const links = raw.links_analysis || {};
+  const scripts = raw.scripts_analysis || {};
+  const imgs = raw.images_analysis || {};
+  const schemas = raw.extracted_schemas || [];
+  const i18n = raw.i18n_internationalization || {};
+  const robots = raw.robots_txt || "";
+
+  const tone = (t) => t === "fail" ? "bad" : t === "warn" ? "warn" : "good";
+  const schemaType = (s) => {
+    const t = s["@type"];
+    return Array.isArray(t) ? t.join(", ") : (t || "Unknown");
+  };
+
+  return `
+    <div class="card mb-4">
+      <h4 class="font-semibold mb-2">Deep DOM &amp; Security Scan</h4>
+      ${insights.length === 0 ? `<div class="text-muted text-sm">No critical findings.</div>` :
+        `<ul class="space-y-1 text-sm">
+          ${insights.map(i => `
+            <li class="flex items-start gap-2">
+              <span class="dot dot-${tone(i.type)} mt-1.5"></span>
+              <span><span class="badge mr-1">${escapeHtml(i.cat)}</span>${escapeHtml(i.msg)}</span>
+            </li>`).join("")}
+        </ul>`}
+    </div>
+
+    <details class="card mb-4">
+      <summary class="cursor-pointer font-semibold">Raw scan data</summary>
+      <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+        <div>
+          <div class="text-xs font-semibold uppercase text-muted mb-1">Security &amp; bot headers</div>
+          <ul class="space-y-1">
+            ${Object.entries(sec).map(([k, v]) => `
+              <li class="flex justify-between gap-2">
+                <span class="text-muted">${escapeHtml(k)}</span>
+                <span class="${v ? '' : 'text-muted'}">${v ? escapeHtml(String(v).slice(0, 80)) : '—'}</span>
+              </li>`).join("")}
+          </ul>
+        </div>
+        <div>
+          <div class="text-xs font-semibold uppercase text-muted mb-1">DOM statistics</div>
+          <ul class="space-y-1">
+            <li class="flex justify-between"><span class="text-muted">Total nodes</span><span>${dom.total_dom_nodes ?? "—"}</span></li>
+            <li class="flex justify-between"><span class="text-muted">Text/HTML ratio</span><span>${dom.text_to_html_ratio != null ? Math.round(dom.text_to_html_ratio * 100) + '%' : '—'}</span></li>
+            <li class="flex justify-between"><span class="text-muted">H1 / H2 / H3</span><span>${dom.headings_count?.h1 ?? 0} / ${dom.headings_count?.h2 ?? 0} / ${dom.headings_count?.h3 ?? 0}</span></li>
+            <li class="flex justify-between"><span class="text-muted">html lang</span><span>${escapeHtml(i18n.html_lang || "—")}</span></li>
+          </ul>
+        </div>
+        <div>
+          <div class="text-xs font-semibold uppercase text-muted mb-1">Links</div>
+          <ul class="space-y-1">
+            <li class="flex justify-between"><span class="text-muted">Total</span><span>${links.total_links ?? 0}</span></li>
+            <li class="flex justify-between"><span class="text-muted">External</span><span>${links.external_links_count ?? 0}</span></li>
+            <li class="flex justify-between"><span class="text-muted">nofollow / ugc / sponsored</span><span>${links.nofollow_ugc_sponsored_count ?? 0}</span></li>
+          </ul>
+        </div>
+        <div>
+          <div class="text-xs font-semibold uppercase text-muted mb-1">Scripts &amp; images</div>
+          <ul class="space-y-1">
+            <li class="flex justify-between"><span class="text-muted">Total scripts</span><span>${scripts.total_scripts ?? 0}</span></li>
+            <li class="flex justify-between"><span class="text-muted">Inline scripts</span><span>${scripts.inline_scripts_count ?? 0}</span></li>
+            <li class="flex justify-between"><span class="text-muted">Images</span><span>${imgs.total_images ?? 0}</span></li>
+            <li class="flex justify-between"><span class="text-muted">Missing alt</span><span>${imgs.images_missing_alt ?? 0}</span></li>
+            <li class="flex justify-between"><span class="text-muted">Lazy-loaded</span><span>${imgs.images_lazy_loaded ?? 0}</span></li>
+          </ul>
+        </div>
+        <div class="md:col-span-2">
+          <div class="text-xs font-semibold uppercase text-muted mb-1">JSON-LD schemas (${schemas.length})</div>
+          ${schemas.length === 0 ? `<div class="text-muted text-xs">None detected.</div>` :
+            `<div class="flex flex-wrap gap-1">${schemas.map(s => `<span class="badge">${escapeHtml(schemaType(s))}</span>`).join("")}</div>`}
+        </div>
+        ${robots && robots !== "Failed to fetch or timeout" ? `
+          <div class="md:col-span-2">
+            <div class="text-xs font-semibold uppercase text-muted mb-1">robots.txt (first 500 chars)</div>
+            <pre class="text-xs p-2 rounded-md overflow-x-auto" style="background:color-mix(in oklab, var(--fg) 8%, transparent)">${escapeHtml(robots.slice(0, 500))}</pre>
+          </div>` : ""}
+      </div>
+    </details>
   `;
 }
