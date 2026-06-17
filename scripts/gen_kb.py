@@ -6,6 +6,8 @@ template dictionary. Run from the repo root:
 Writes to ./kb/*.md. The /kb/{filename} backend route serves these files
 unmodified.
 """
+from __future__ import annotations
+
 import os
 
 kb_dir = os.path.join(

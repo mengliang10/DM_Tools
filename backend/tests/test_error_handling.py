@@ -6,7 +6,6 @@ import pytest
 
 from backend.api.llm_clients import _wrap_error
 
-
 # -- LLM error classifier ----------------------------------------------------
 
 

@@ -4,7 +4,6 @@ active-profile lookup. Kept dependency-free so they can be unit-tested.
 from __future__ import annotations
 
 import re
-import sqlite3
 
 from fastapi import HTTPException
 

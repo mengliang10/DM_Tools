@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import os
-import tempfile
-from pathlib import Path
 
 import pytest
 from cryptography.fernet import Fernet
@@ -37,6 +35,7 @@ def _isolate_env(tmp_path_factory):
 @pytest.fixture
 def client():
     from fastapi.testclient import TestClient
+
     from backend.main import app
     with TestClient(app) as c:
         yield c

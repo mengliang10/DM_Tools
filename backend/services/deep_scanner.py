@@ -1,21 +1,27 @@
+from __future__ import annotations
+
 import json
+import logging
 import urllib.parse
-from bs4 import BeautifulSoup
+
 import httpx
+from bs4 import BeautifulSoup
+
+logger = logging.getLogger(__name__)
 
 def generate_deep_comments(data):
     """
     Analyzes the raw deep scan data and generates human-readable technical comments.
     """
     comments = []
-    
+
     # 1. Security & Bots
     headers = data.get("security_and_bot_headers", {})
     if headers.get("X-Robots-Tag") and "noai" in headers.get("X-Robots-Tag", "").lower():
         comments.append({"cat": "Bots", "msg": "CRITICAL: X-Robots-Tag:noai detected. This site explicitly forbids AI ingestion via headers.", "type": "fail"})
     if headers.get("Content-Security-Policy"):
         comments.append({"cat": "Security", "msg": "Site implements Content-Security-Policy (CSP). High integrity signal.", "type": "pass"})
-    
+
     robots = data.get("robots_txt", "")
     if robots and "GPTBot" in robots and "Disallow" in robots:
         comments.append({"cat": "Bots", "msg": "GPTBot is explicitly restricted in robots.txt.", "type": "warn"})
@@ -26,7 +32,7 @@ def generate_deep_comments(data):
         comments.append({"cat": "Perf", "msg": f"High DOM complexity ({dom['total_dom_nodes']} nodes). Large trees can increase LLM compute cost and token usage.", "type": "warn"})
     if dom.get("text_to_html_ratio", 0) < 0.1:
         comments.append({"cat": "Perf", "msg": "Low Text-to-HTML ratio (<10%). Page contains heavy boilerplate or code relative to core content.", "type": "warn"})
-    
+
     # 3. Headings
     h = dom.get("headings_count", {})
     if h.get("h1") == 0:
@@ -63,8 +69,11 @@ def generate_deep_comments(data):
 async def fetch_lighthouse_data(url: str):
     """
     Queries Google PageSpeed Insights API to get Lighthouse metrics.
+
+    DEPRECATED: Use services/pagespeed.py instead. This function is retained
+    only for reference and is never called by the application routes.
     """
-    print(f"Fetching Lighthouse data for: {url}")
+    logger.info("Fetching Lighthouse data for: %s", url)
     endpoint = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={urllib.parse.quote(url)}&category=PERFORMANCE&category=ACCESSIBILITY&category=BEST_PRACTICES&category=SEO"
     try:
         async with httpx.AsyncClient() as client:
@@ -73,11 +82,11 @@ async def fetch_lighthouse_data(url: str):
                 data = r.json()
                 lh = data.get("lighthouseResult", {})
                 categories = lh.get("categories", {})
-                print(f"Lighthouse data received successfully for {url}")
+                logger.info("Lighthouse data received successfully for %s", url)
                 return {
                     "performance": categories.get("performance", {}).get("score", 0) * 100,
                     "accessibility": categories.get("accessibility", {}).get("score", 0) * 100,
-                    "best_practices": categories.get("best_practices", {}).get("score", 0) * 100,
+                    "best_practices": categories.get("best-practices", {}).get("score", 0) * 100,
                     "seo": categories.get("seo", {}).get("score", 0) * 100,
                     "audits": {
                         "first-contentful-paint": lh.get("audits", {}).get("first-contentful-paint", {}).get("displayValue"),
@@ -87,18 +96,17 @@ async def fetch_lighthouse_data(url: str):
                     }
                 }
             else:
-                print(f"Lighthouse API returned error status {r.status_code}: {r.text[:200]}")
+                logger.warning("Lighthouse API returned error status %d: %s", r.status_code, r.text[:200])
     except Exception as e:
-        print(f"Lighthouse fetch failed: {str(e)}")
+        logger.warning("Lighthouse fetch failed: %s", e)
     return None
 
 async def run_deep_scan(url: str, html: str, headers: dict, client: httpx.AsyncClient):
     soup = BeautifulSoup(html, "html.parser")
     parsed_url = urllib.parse.urlparse(url)
     base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
-    
+
     # 1. HTTP Headers & Security/Bot Signals
-    raw_headers = {k: v for k, v in headers.items()}
     security_headers = {
         "Strict-Transport-Security": headers.get("Strict-Transport-Security"),
         "Content-Security-Policy": headers.get("Content-Security-Policy"),
@@ -187,7 +195,7 @@ async def run_deep_scan(url: str, html: str, headers: dict, client: httpx.AsyncC
             if script.string:
                 schema_data = json.loads(script.string)
                 schemas.append(schema_data)
-        except:
+        except json.JSONDecodeError:
             schemas.append({"error": "Invalid JSON-LD syntax", "raw_snippet": script.string[:200] if script.string else ""})
 
     # 9. Accessibility (ARIA) & i18n
@@ -197,7 +205,7 @@ async def run_deep_scan(url: str, html: str, headers: dict, client: httpx.AsyncC
         "html_dir": html_tag.get("dir") if html_tag else None,
         "hreflang_links": [{"href": link.get("href"), "hreflang": link.get("hreflang")} for link in soup.find_all("link", hreflang=True)]
     }
-    
+
     elements_with_roles = soup.find_all(attrs={"role": True})
     roles_used = list(set([el["role"] for el in elements_with_roles]))
     aria_labels_count = len(soup.find_all(attrs={"aria-label": True}))
@@ -205,7 +213,7 @@ async def run_deep_scan(url: str, html: str, headers: dict, client: httpx.AsyncC
     # 10. DOM Stats
     all_nodes = soup.find_all(True)
     text_content = soup.get_text(separator=" ", strip=True)
-    
+
     dom_stats = {
         "total_dom_nodes": len(all_nodes),
         "html_size_bytes": len(html),
@@ -227,7 +235,7 @@ async def run_deep_scan(url: str, html: str, headers: dict, client: httpx.AsyncC
         r_resp = await client.get(f"{base_url}/robots.txt", timeout=3.0, follow_redirects=True)
         if r_resp.status_code == 200:
             robots_txt = r_resp.text[:2000] # First 2000 chars to avoid massive files
-    except:
+    except Exception:
         robots_txt = "Failed to fetch or timeout"
 
     full_data = {
@@ -243,8 +251,8 @@ async def run_deep_scan(url: str, html: str, headers: dict, client: httpx.AsyncC
         "meta_tags": meta_tags,
         "links_analysis": {
             "total_links": len(links),
-            "external_links_count": sum(1 for l in links if l["is_external"]),
-            "nofollow_ugc_sponsored_count": sum(1 for l in links if l["is_nofollow"]),
+            "external_links_count": sum(1 for link in links if link["is_external"]),
+            "nofollow_ugc_sponsored_count": sum(1 for link in links if link["is_nofollow"]),
             "all_links_list": links
         },
         "scripts_analysis": {

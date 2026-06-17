@@ -53,7 +53,7 @@ def _gather_jsonld(soup: BeautifulSoup) -> list[dict]:
     return out
 
 
-def _score(soup: BeautifulSoup, html: str, brand: str, load_seconds: float) -> dict:
+def _score(soup: BeautifulSoup, html: str, brand: str, load_seconds: float, url: str = "") -> dict:
     """15-point GEO scorecard with category buckets."""
     text = soup.get_text(separator=" ", strip=True)
     words = _word_count(text)
@@ -121,8 +121,10 @@ def _score(soup: BeautifulSoup, html: str, brand: str, load_seconds: float) -> d
         internal_links >= 3, 1, "Add internal links so AI can crawl related pages.")
 
     # Mixed SEO/GEO
-    add("Mixed SEO/GEO", "https", "HTTPS",
-        True, 1)  # if we got here, URL was upgraded to https
+    scheme = url.split("://")[0] if "://" in url else "unknown"
+    https_active = url.startswith("https")
+    add("Mixed SEO/GEO", "https", f"HTTPS {'active' if https_active else f'missing — {scheme}'}",
+        https_active, 1, "Serve the page over HTTPS to avoid penalties.")
     add("Mixed SEO/GEO", "load_speed", "Page loaded under 3s",
         load_seconds < 3.0, 2,
         f"Server responded in {load_seconds:.1f}s — improve TTFB / caching.")
@@ -166,6 +168,7 @@ def _score(soup: BeautifulSoup, html: str, brand: str, load_seconds: float) -> d
             "load_seconds": round(load_seconds, 3),
             "schema_types": sorted(t for t in schema_types if t),
             "internal_links": internal_links,
+            "scheme": url.split("://")[0] if "://" in url else "unknown",
         },
     }
 
@@ -195,7 +198,7 @@ async def analyze_website(body: WebsiteAnalyzeIn) -> dict:
         raise HTTPException(502, f"Failed to fetch URL: {e}") from e
 
     soup = BeautifulSoup(html, "html.parser")
-    findings = _score(soup, html, body.brand, load_time)
+    findings = _score(soup, html, body.brand, load_time, url)
     findings["martech"] = martech.detect(html)
     findings["lighthouse"] = await pagespeed.fetch_lighthouse(url)
     findings["deep_scan"] = deep_scan  # {"raw": {...}, "insights": [...]}

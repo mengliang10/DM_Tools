@@ -21,7 +21,7 @@ export function initTheme() {
     setTheme(stored);
     return;
   }
-  const prefersLight = window.matchMedia?.("(prefers-color-scheme: light)").matches;
+  const prefersLight = window.matchMedia?.("(prefers-color-scheme: light)")?.matches ?? false;
   setTheme(prefersLight ? "light" : "dark");
 }
 

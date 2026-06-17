@@ -103,7 +103,7 @@ Almost always means **uvicorn is running from your system Python instead of the 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Tests](https://img.shields.io/badge/tests-42%20passing-success)](#testing)
+[![Tests](https://img.shields.io/badge/tests-72%20passing-success)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
@@ -132,6 +132,7 @@ Almost always means **uvicorn is running from your system Python instead of the 
 - [Roadmap](#roadmap)
 - [Migration from old repos](#migration-from-old-repos)
 - [Contributing](#contributing)
+- [Changelog](#changelog)
 - [License](#license)
 
 ---
@@ -438,22 +439,28 @@ DM_Tools/
 │   ├── config.py           Pydantic settings (.env)
 │   ├── database.py         SQLite schema + WAL mode + helpers
 │   ├── api/
-│   │   ├── llm_clients.py  Async client for 15 providers, retries, shared httpx pool
-│   │   ├── helpers.py      Brand/sentiment/competitor heuristics, language suffix
-│   │   ├── schemas.py      Pydantic request bodies
+│   │   ├── llm_clients.py     Async client for 15 providers, retries, shared httpx pool
+│   │   ├── helpers.py         Brand/sentiment/competitor heuristics, language suffix
+│   │   ├── schemas.py         Pydantic request bodies
+│   │   ├── prompt_templates.py  Persona prompts + autofill templates
 │   │   └── routes/
-│   │       ├── meta.py        /api/health, /api/providers, /api/settings
-│   │       ├── keys.py        /api/keys     (encrypted CRUD)
-│   │       ├── profiles.py    /api/profiles, /api/prompts, /api/competitors
-│   │       ├── geo.py         /api/visibility/*, /api/content/*, /api/faq/*
-│   │       ├── analyzers.py   /api/website/*, /api/martech/*
-│   │       └── history.py     /api/history
+│   │       ├── meta.py           /api/health, /api/providers, /api/settings, /api/dashboard, /api/kb
+│   │       ├── keys.py           /api/keys     (encrypted CRUD)
+│   │       ├── profiles.py       /api/profiles, /api/prompts, /api/competitors
+│   │       ├── geo.py            /api/visibility/*, /api/content/*, /api/faq/*
+│   │       ├── analysis.py       /api/analysis/* (persona-driven + multi-LLM debate) + /api/autofill
+│   │       ├── pro.py            /api/pro/* (citation grader + JSON-LD schema generator)
+│   │       ├── analyzers.py      /api/website/*, /api/martech/*
+│   │       ├── domains.py        /api/domains, /api/site-profiles
+│   │       └── history.py        /api/history
 │   ├── services/
-│   │   ├── security.py        Fernet encryption (cached, plaintext fallback)
-│   │   ├── martech.py         100+ vendor detector (precompiled regex)
-│   │   ├── martech_patterns.py 746-line vendor library
-│   │   └── pagespeed.py       Optional Google PageSpeed wrapper
-│   └── tests/                 21 pytest tests (helpers, security, martech, all routes)
+│   │   ├── security.py           Fernet encryption (cached, plaintext fallback)
+│   │   ├── martech.py            100+ vendor detector (precompiled regex)
+│   │   ├── martech_patterns.py   746-line vendor library
+│   │   ├── pagespeed.py          Optional Google PageSpeed wrapper
+│   │   ├── deep_scanner.py       Deep DOM, security headers, robots.txt, schema extraction
+│   │   └── geo_logic.py          Citation probability scoring + advanced schema generation
+│   └── tests/                    46 pytest tests (helpers, security, martech, all routes, error handling)
 ├── frontend/               Vite + Tailwind v4 + vanilla JS
 │   ├── index.html
 │   └── src/
@@ -462,12 +469,12 @@ DM_Tools/
 │       ├── components/        toast, modal, settings
 │       ├── utils/             api, theme, storage, format (markdown render + sanitise)
 │       └── modules/
-│           ├── geo/           visibility, content, faq, prompts, competitors
-│           ├── analyzers/     website, martech (server-backed)
-│           ├── aio/           container that uses 6 shared/ analysers
-│           ├── seo/           container that uses 6 shared/ analysers
-│           └── shared/        12 pure-function analysers (no DOM, no I/O — testable)
-├── tests/                  Vitest tests (21 tests across 3 files)
+│           ├── geo/              visibility, content, faq, prompts, competitors, analysis, pro_tools, profiles, domains
+│           ├── analyzers/        website, martech (server-backed)
+│           ├── aio/              container that uses 6 shared/ analysers
+│           ├── seo/              container that uses 6 shared/ analysers
+│           └── shared/           12 pure-function analysers (no DOM, no I/O — testable)
+├── tests/                     Vitest tests (26 tests across 4 files)
 ├── docs/                   ARCHITECTURE.md, API.md, FEATURES.md, MIGRATION.md
 ├── .github/workflows/ci.yml   pytest + vitest + build on push
 ├── docker-compose.yml
@@ -514,21 +521,21 @@ A typical workflow: one profile per client / brand you manage.
 
 ```bash
 # Backend
-pytest                                   # 21 tests
+pytest                                   # 46 tests
 pytest --cov=backend --cov-report=term-missing   # with coverage
 pytest -ra -k test_routes                # filter by name
 
 # Frontend
 npm test                                 # vitest watch mode
-npm test -- --run                        # one-shot, CI-style
+npm test -- --run                        # one-shot, CI-style (26 tests)
 ```
 
 Both suites also run automatically in GitHub Actions on every push (see `.github/workflows/ci.yml`).
 
 What's covered:
 
-- **Backend**: encryption roundtrip, brand/sentiment/competitor helpers, martech pattern matching against fixture HTML, every router happy-path, mocked-LLM end-to-end visibility run via `respx`.
-- **Frontend**: every shared analyser (AIO + SEO) with realistic input, format helpers (`escapeHtml`, `pct`, `gradeFromScore`, `renderMarkdown` sanitiser).
+- **Backend**: encryption roundtrip, brand/sentiment/competitor helpers, martech pattern matching against fixture HTML, every router happy-path, mocked-LLM end-to-end visibility run via `respx`, error handling, deep scanner, pro tools.
+- **Frontend**: every shared analyser (AIO + SEO) with realistic input, format helpers (`escapeHtml`, `pct`, `gradeFromScore`, `renderMarkdown` sanitiser), API client error handling.
 
 ---
 
@@ -658,3 +665,26 @@ The codebase is intentionally small and dependency-light. Please don't introduce
 ## License
 
 MIT © Meng Liang Tan
+
+---
+
+## Changelog
+
+### v0.2.0 — Bug fixes & polish
+
+**Fixed bugs:**
+- Theme initialisation: `window.matchMedia` optional chaining syntax error prevented fallback to `prefers-color-scheme` when no stored preference
+- Website Analyzer: HTTPS check always reported as passing regardless of actual URL scheme; now displays `HTTPS active` / `HTTPS missing — http` with scheme in stats bar
+- Website Analyzer: `_score()` lacked access to the URL, causing a `NameError` at runtime on the HTTPS check
+- Lighthouse integration: `best_practices` key used underscore instead of hyphen, returning 0 for PageSpeed best-practices score
+- Deep scanner: used `print()` instead of proper `logging`; bare `except:` clauses swallowed all exceptions; dead `raw_headers` variable; missing `from __future__ import annotations`
+- Domains & Pages: `delete_site_profile` route confusingly used `profile_id` as parameter name (now `sp_id`)
+- Markdown renderer: deprecated `marked.setOptions()` replaced with `marked.use()`
+- SERP preview: power-words list was frozen at 2024/2025; added 2026
+- Exception chaining: missing `from e` clause on `HTTPException` re-raise in autofill route
+- Ambiguous variable name `l` in deep scanner comprehensions
+- Knowledge-base generator script missing `from __future__ import annotations`
+
+**Linting:** All 21 ruff issues resolved (import sorting, unused imports, whitespace, deprecated imports)
+
+**Tests:** Backend 46 / Frontend 26 (all passing)

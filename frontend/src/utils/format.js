@@ -2,7 +2,7 @@
 import { marked } from "marked";
 import createDOMPurify from "dompurify";
 
-marked.setOptions({ gfm: true, breaks: true });
+marked.use({ gfm: true, breaks: true });
 
 // DOMPurify needs a `window`. In Vite/browser it's there at import time;
 // in happy-dom (vitest) it's available by the time `renderMarkdown` runs,

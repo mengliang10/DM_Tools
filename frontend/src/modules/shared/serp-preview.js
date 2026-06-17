@@ -47,7 +47,7 @@ function estimateCTR(title, desc, keyword) {
   const d = desc.toLowerCase()
 
   // Power words
-  const powerWords = ['best', 'top', 'ultimate', 'complete', 'guide', 'how to', 'free', 'new', 'easy', 'proven', 'expert', 'fast', 'simple', '2024', '2025']
+  const powerWords = ['best', 'top', 'ultimate', 'complete', 'guide', 'how to', 'free', 'new', 'easy', 'proven', 'expert', 'fast', 'simple', '2026', '2025', '2024']
   powerWords.forEach(w => { if (t.includes(w)) score += 5 })
 
   // Numbers in title

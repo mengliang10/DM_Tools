@@ -7,7 +7,6 @@ from httpx import Response
 
 from backend.api.prompt_templates import AUTOFILL_PROMPTS, PERSONA_PROMPTS
 
-
 # ---------------------------------------------------------------------------
 # Templates exist and are well-formed
 # ---------------------------------------------------------------------------

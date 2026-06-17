@@ -1,6 +1,5 @@
 from backend.services import martech
 
-
 SAMPLE_HTML = """
 <!doctype html>
 <html><head>

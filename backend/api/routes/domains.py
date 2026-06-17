@@ -155,11 +155,11 @@ async def add_site_profile(body: SiteProfileIn) -> dict[str, int]:
         conn.close()
 
 
-@router.delete("/site-profiles/{profile_id}")
-async def delete_site_profile(profile_id: int) -> dict[str, bool]:
+@router.delete("/site-profiles/{sp_id}")
+async def delete_site_profile(sp_id: int) -> dict[str, bool]:
     conn = get_db()
     try:
-        conn.execute("DELETE FROM site_profiles WHERE id=?", (profile_id,))
+        conn.execute("DELETE FROM site_profiles WHERE id=?", (sp_id,))
         conn.commit()
     finally:
         conn.close()

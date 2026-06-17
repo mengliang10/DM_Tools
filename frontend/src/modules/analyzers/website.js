@@ -5,6 +5,7 @@ import { escapeHtml, gradeFromScore, pct, relativeTime } from "../../utils/forma
 function statStrip(s) {
   if (!s) return "";
   const items = [
+    ["Scheme",         s.scheme?.toUpperCase()],
     ["Words",          s.word_count],
     ["Images",         s.image_count],
     ["Alt-text ratio", s.image_alt_ratio != null ? `${Math.round(s.image_alt_ratio * 100)}%` : null],

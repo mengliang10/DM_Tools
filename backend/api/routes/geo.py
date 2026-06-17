@@ -7,6 +7,7 @@ import json
 from fastapi import APIRouter, HTTPException
 
 from ...database import get_db, row_to_dict, rows_to_list
+from ...services.security import decrypt
 from ..helpers import (
     analyze_sentiment,
     brand_mentioned,
@@ -20,7 +21,6 @@ from ..helpers import (
 )
 from ..llm_clients import LLMAPIError, query_llm
 from ..schemas import ContentGenIn, FaqGenIn, VisibilityRunIn
-from ...services.security import decrypt
 
 router = APIRouter()
 

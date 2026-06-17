@@ -13,7 +13,6 @@ from __future__ import annotations
 import asyncio
 import json
 import re
-from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
@@ -441,4 +440,4 @@ async def autofill(body: AutofillIn) -> dict:
     try:
         return json.loads(raw.strip())
     except json.JSONDecodeError as e:
-        raise HTTPException(502, f"LLM returned invalid JSON: {e}. Raw: {raw[:300]}")
+        raise HTTPException(502, f"LLM returned invalid JSON: {e}. Raw: {raw[:300]}") from e
