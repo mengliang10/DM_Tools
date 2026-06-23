@@ -475,7 +475,6 @@ DM_Tools/
 │           ├── seo/              container that uses 6 shared/ analysers
 │           └── shared/           12 pure-function analysers (no DOM, no I/O — testable)
 ├── tests/                     Vitest tests (26 tests across 4 files)
-├── docs/                   ARCHITECTURE.md, API.md, FEATURES.md, MIGRATION.md
 ├── .github/workflows/ci.yml   pytest + vitest + build on push
 ├── docker-compose.yml
 ├── Dockerfile              multi-stage: Node build + Python runtime
@@ -486,8 +485,6 @@ DM_Tools/
 ├── .gitignore
 └── README.md
 ```
-
-For deeper design rationale, see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). For the full route reference see [`docs/API.md`](docs/API.md).
 
 ---
 
@@ -642,7 +639,7 @@ DM_Tools is built for **localhost first**. To put it on the open internet you ne
 
 ## Migration from old repos
 
-The original repos (`geo`, `geo-tool`, `aio-tool`, `seo-tool`, `SEO`, `martech-scanner`) have been superseded by DM_Tools and deleted. If you have a local copy of `geo/data/geo.db` and want to bring forward your prompts / competitors / profiles, see [`docs/MIGRATION.md`](docs/MIGRATION.md) for the SQL.
+The original repos (`geo`, `geo-tool`, `aio-tool`, `seo-tool`, `SEO`, `martech-scanner`) have been superseded by DM_Tools and deleted.
 
 > The `aio-tool`, `seo-tool`, `geo-tool` repos stored everything in browser `localStorage` only — nothing on disk to migrate.
 
