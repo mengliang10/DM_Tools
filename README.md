@@ -1,6 +1,6 @@
 # DM_Tools
 
-> **Unified digital-marketing dashboard.** One local web app that consolidates Generative Engine Optimization (GEO), Google AI Overview (AIO) optimisation, traditional on-page SEO, and martech-stack detection — persisted on your own machine.
+> **Unified digital-marketing dashboard.** One local web app that consolidates Generative Engine Optimization (GEO), Google AI Overview (AIO) optimisation, traditional on-page SEO, and martech-stack detection, persisted on your own machine.
 
 ---
 
